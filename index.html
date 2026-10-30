@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수업 진도표</title>
+<meta name="theme-color" content="#0F6E6C">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{
+  --font-ui:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo",system-ui,sans-serif;
+  --font-mono:Consolas,"D2Coding","Courier New",monospace;
+  --paper:#EDF1F2; --surface:#FBFCFC; --surface-2:#F3F6F7;
+  --ink:#16232E; --muted:#5E6E79; --faint:#8798A3;
+  --line:#CBD5D9; --line-soft:#DDE4E7;
+  --accent:#0F6E6C; --accent-soft:#DCEAE9; --accent-ink:#FFFFFF;
+  --alert:#B4441B; --alert-soft:#F7E3DA;
+  --shadow:0 1px 2px rgba(21,35,46,.06), 0 6px 18px -10px rgba(21,35,46,.28);
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#0F171D; --surface:#18232B; --surface-2:#1E2B34;
+    --ink:#E2E9ED; --muted:#93A5B0; --faint:#6F8290;
+    --line:#2C3A44; --line-soft:#243139;
+    --accent:#38A9A5; --accent-soft:#123634; --accent-ink:#06211F;
+    --alert:#E8763F; --alert-soft:#3A2018;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 8px 22px -12px rgba(0,0,0,.7);
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--font-ui); font-size:14px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0; font-weight:600}
+button,input,select,textarea{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+[hidden]{display:none !important}
+
+.topbar{position:sticky; top:0; z-index:30; background:var(--surface); border-bottom:1px solid var(--line)}
+.topmain{display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:12px 20px 0}
+.brand{display:flex; align-items:center; gap:12px; margin-right:8px}
+.mark{
+  width:34px; height:34px; flex:none; border-radius:8px;
+  background:var(--accent); color:var(--accent-ink); display:grid; place-items:center;
+  font-size:16px; font-weight:600;
+}
+.brand h1{font-size:18px; letter-spacing:-.01em; white-space:nowrap}
+.tabs{display:flex; gap:2px; align-self:flex-end}
+.tab{
+  background:none; border:0; border-bottom:2px solid transparent; cursor:pointer;
+  padding:8px 14px 9px; color:var(--muted); font-weight:600;
+}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--accent); border-bottom-color:var(--accent)}
+.filestate{margin-left:auto; display:flex; align-items:center; gap:8px; align-self:center; padding-bottom:10px; font-size:12px; color:var(--muted)}
+.filestate .dot{width:8px; height:8px; border-radius:50%; background:var(--faint); flex:none}
+.filestate.ok .dot{background:var(--accent)}
+.filestate.bad{color:var(--alert)}
+.filestate.bad .dot{background:var(--alert)}
+
+main{max-width:1200px; margin:0 auto; padding:16px 20px 48px}
+.btn{
+  background:var(--surface); border:1px solid var(--line); border-radius:7px;
+  padding:6px 12px; cursor:pointer; white-space:nowrap;
+}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:3px 9px; font-size:12px}
+.btn.danger{color:var(--alert)}
+.linkbtn{background:none; border:0; padding:0; color:var(--accent); cursor:pointer; text-decoration:underline; text-underline-offset:2px}
+
+.toolbar{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+.toolbar h2{font-size:17px; margin:0 8px; font-variant-numeric:tabular-nums}
+.spacer{flex:1}
+.hint{font-size:12.5px; color:var(--muted)}
+.notice{
+  background:var(--accent-soft); border-radius:8px; padding:10px 14px; margin-bottom:12px;
+}
+
+/* 주간 진도표 */
+.printhead{display:none}
+.sheet{width:100%; table-layout:fixed; border-collapse:collapse; background:var(--surface); box-shadow:var(--shadow)}
+.sheet th,.sheet td{border:1px solid var(--line); padding:0}
+.sheet .pcol{width:52px}
+.sheet tbody th{font-weight:600; font-size:15px; background:var(--surface-2)}
+.dayhead{
+  display:block; width:100%; background:var(--surface-2); border:0; padding:6px 4px; cursor:pointer; text-align:center;
+  line-height:1.35;
+}
+.dayhead:hover{background:var(--line-soft)}
+.dayhead b{display:block; font-size:14px; font-variant-numeric:tabular-nums}
+.dayhead span{display:block; font-weight:400; font-size:12.5px; color:var(--muted)}
+.dayhead .lbl{color:var(--alert); font-weight:600}
+th.today .dayhead{background:var(--accent); color:var(--accent-ink)}
+th.today .dayhead span{color:inherit}
+td.today{background:var(--accent-soft)}
+td.off{background:repeating-linear-gradient(135deg,var(--surface-2) 0 6px,transparent 6px 12px)}
+.lunch td{background:var(--surface-2); text-align:center; letter-spacing:.6em; font-weight:600; padding:3px 0; font-size:13px; color:var(--muted)}
+.cell{position:relative; vertical-align:top; height:70px}
+.cell:focus-within{outline:2px solid var(--accent); outline-offset:-2px; z-index:2}
+.cell input,.cell textarea{
+  display:block; width:100%; border:0; background:transparent; padding:0 8px; outline:none; resize:none; overflow:hidden;
+}
+.cellhead{display:flex}
+.cell input{padding-top:6px; font-weight:700; font-size:14.5px; font-variant-numeric:tabular-nums}
+.cell input.cls{flex:0 0 50%; min-width:0}
+.cell input.subj{flex:1 1 0; min-width:0; padding-left:0; font-weight:400; font-size:12.5px; color:var(--muted); text-align:right}
+.cell textarea{padding-bottom:6px; font-size:14px; line-height:1.4; field-sizing:content}
+.cell.changed::before{content:""; position:absolute; left:0; top:0; bottom:0; border-left:3px dashed var(--accent)}
+.cell.missing::after{
+  content:"미입력"; position:absolute; right:5px; bottom:4px; font-size:10.5px; color:var(--alert);
+  background:var(--alert-soft); border-radius:4px; padding:0 4px; pointer-events:none;
+}
+.pop{
+  position:fixed; z-index:40; width:300px; background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r); box-shadow:var(--shadow); padding:10px 12px; font-size:13px;
+}
+.pop .prev{margin-bottom:8px}
+.pop .prev b{font-variant-numeric:tabular-nums}
+.chips{display:flex; flex-wrap:wrap; gap:4px}
+.chip{background:var(--surface-2); border:1px solid var(--line-soft); border-radius:999px; padding:1px 9px; font-size:12px; cursor:pointer}
+.chip:hover{background:var(--accent-soft)}
+.pop .row{margin-top:8px; color:var(--muted); font-size:12px}
+
+/* 학급별 진도 */
+.card{background:var(--surface); border:1px solid var(--line-soft); border-radius:var(--r); box-shadow:var(--shadow); padding:14px 16px; margin-bottom:14px}
+.card h3{font-size:15px; margin-bottom:8px}
+.tbl{width:100%; border-collapse:collapse}
+.tbl th{font-size:12.5px; font-weight:600; color:var(--muted); text-align:left; border-bottom:1px solid var(--line); padding:5px 8px}
+.tbl td{border-bottom:1px solid var(--line-soft); padding:6px 8px; font-variant-numeric:tabular-nums}
+.tbl tr.pick{cursor:pointer}
+.tbl tr.pick:hover td{background:var(--surface-2)}
+.tbl tr.sel td{background:var(--accent-soft)}
+.tbl .num{text-align:right}
+.big{font-weight:700; font-size:15px}
+.warn{color:var(--alert)}
+.twocol{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start}
+@media (max-width:860px){.twocol{grid-template-columns:minmax(0,1fr)}}
+
+/* 시간표 */
+.ttgrid{width:100%; max-width:760px; table-layout:fixed; border-collapse:collapse; margin:8px 0 12px}
+.ttgrid th,.ttgrid td{border:1px solid var(--line); text-align:center; padding:0}
+.ttgrid th{background:var(--surface-2); font-weight:600; padding:4px}
+.ttgrid .pcol{width:52px}
+.ttgrid input{display:block; width:100%; border:0; background:transparent; text-align:center; padding:6px 2px 0; font-weight:600}
+.ttgrid input:focus{outline:2px solid var(--accent); outline-offset:-2px}
+.ttgrid input.subj{padding:0 2px 6px; font-weight:400; font-size:12.5px; color:var(--muted)}
+.ttgrid input.subj::placeholder{color:transparent}
+.ttgrid td.hasc input.subj::placeholder,.ttgrid td:focus-within input.subj::placeholder{color:var(--faint)}
+.ttgrid .lunch td{padding:2px}
+.form{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-bottom:6px}
+.form label{display:flex; gap:6px; align-items:center}
+.form select,.form input,.dlg input[type=text]{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:4px 7px}
+.verlist{margin:8px 0 0; padding:0; list-style:none}
+.verlist li{display:flex; align-items:center; gap:8px; padding:3px 0}
+.actions{display:flex; gap:8px; flex-wrap:wrap}
+
+dialog{
+  background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:12px;
+  box-shadow:var(--shadow); padding:20px 22px; width:min(460px,calc(100vw - 32px));
+}
+dialog::backdrop{background:rgba(15,23,29,.45)}
+dialog h2{font-size:17px; margin-bottom:8px}
+dialog p{margin:0 0 12px}
+.dlgbtns{display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; margin-top:14px}
+.startbtns{display:flex; flex-direction:column; gap:8px; margin:14px 0 4px}
+.startbtns .btn{padding:9px 12px; text-align:left; white-space:normal}
+.startbtns small{display:block; font-weight:400; font-size:12px; opacity:.85}
+.dlg input[type=text]{width:100%; margin-bottom:8px}
+
+@media print{
+  :root{--paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#000; --line:#000; --accent-soft:#fff; --alert:#000; --shadow:none}
+  @page{size:A4 portrait; margin:12mm}
+  body{background:#fff}
+  .topbar,.toolbar,.pop,.notice{display:none !important}
+  main{padding:0; max-width:none}
+  .printhead{display:block; text-align:center; font-size:26px; font-weight:700; letter-spacing:.3em; margin-bottom:2px}
+  .printsub{display:block; text-align:center; font-size:13px; font-weight:400; letter-spacing:0; margin-bottom:8px}
+  .sheet{box-shadow:none}
+  .cell{height:88px}
+  .cell.missing::after,.cell.changed::before{display:none}
+  td.off{background:none}
+  th.today .dayhead{background:none; color:#000}
+  .dayhead{background:none}
+  .lunch td{background:none}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topmain">
+    <div class="brand"><div class="mark" aria-hidden="true">진</div><h1>수업 진도표</h1></div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="week">주간 진도표</button>
+      <button class="tab" role="tab" data-tab="classes">학급별 진도</button>
+      <button class="tab" role="tab" data-tab="setup">시간표 · 저장</button>
+    </nav>
+    <div class="filestate" id="filestate" role="status"></div>
+  </div>
+</header>
+
+<main>
+  <section id="view-week" hidden>
+    <div class="toolbar">
+      <button class="btn" id="prevWeek" aria-label="이전 주">◀</button>
+      <button class="btn" id="thisWeek">이번 주</button>
+      <button class="btn" id="nextWeek" aria-label="다음 주">▶</button>
+      <h2 id="weekTitle"></h2>
+      <div class="spacer"></div>
+      <span class="hint">Enter: 다음 수업 · 날짜 클릭: 휴일·시험 표시</span>
+      <button class="btn" id="printBtn">인쇄</button>
+    </div>
+    <div class="notice" id="noTT" hidden>아직 시간표가 없습니다. <button class="linkbtn" id="goSetup">시간표를 먼저 등록</button>하면 수업 칸이 자동으로 채워집니다.</div>
+    <div class="printhead">수업 진도표<span class="printsub" id="printSub"></span></div>
+    <table class="sheet" id="sheet"></table>
+    <datalist id="classlist"></datalist>
+    <datalist id="subjectlist"></datalist>
+  </section>
+
+  <section id="view-classes" hidden>
+    <div class="twocol">
+      <div class="card">
+        <h3>학급별 현재 진도</h3>
+        <p class="hint" style="margin:0 0 8px">같은 과목 안에서 많이 나간 학급부터 보여 줍니다. 수행평가처럼 숫자로 시작하지 않는 기록은 진도로 치지 않습니다.</p>
+        <div id="classTable"></div>
+      </div>
+      <div class="card">
+        <h3 id="histTitle">수업 기록</h3>
+        <div id="histTable"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-setup" hidden>
+    <div class="card">
+      <h3>시간표</h3>
+      <div class="form">
+        <label>교시 수 <select id="ttPeriods"><option>6</option><option>7</option><option>8</option></select></label>
+        <label>점심시간 <select id="ttLunch"></select></label>
+        <label id="ttFromWrap">적용 시작일 <input type="date" id="ttFrom"></label>
+      </div>
+      <p class="hint" id="ttFromHint" style="margin:0">시작일 이전의 진도표는 바뀌지 않으므로, 학기 중에 시간표가 바뀌어도 지난 기록이 그대로 남습니다.</p>
+      <table class="ttgrid" id="ttGrid"></table>
+      <p class="hint" style="margin:0 0 10px">담당 학급을 201처럼 적으세요. 과목은 여러 과목을 가르칠 때만 적으면 되고, 한 과목이면 비워 두어도 됩니다. 숫자나 '반'이 없는 칸(기획회의 등)은 시간표에는 표시되지만 학급 진도에서는 빠집니다.</p>
+      <div class="actions"><button class="btn primary" id="ttSave">시간표 저장</button></div>
+      <ul class="verlist" id="ttVersions"></ul>
+    </div>
+    <div class="card">
+      <h3>저장 파일</h3>
+      <p id="fileInfo" style="margin:0 0 10px"></p>
+      <div class="actions">
+        <button class="btn" id="openOther">다른 파일 열기</button>
+        <button class="btn" id="newFile">새 파일 만들기</button>
+        <button class="btn" id="backup">백업 내려받기</button>
+        <button class="btn" id="csv">엑셀용 CSV 내려받기</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="pop" id="pop" hidden></div>
+
+<dialog id="startDlg">
+  <h2>수업 진도표</h2>
+  <p id="startMsg">진도를 저장할 파일을 고르세요. OneDrive 폴더에 두면 학교와 집 PC에서 같은 기록을 볼 수 있습니다.</p>
+  <div class="startbtns" id="startBtns"></div>
+</dialog>
+
+<dialog id="askDlg">
+  <h2 id="askTitle"></h2>
+  <p id="askMsg"></p>
+  <div class="dlgbtns" id="askBtns"></div>
+</dialog>
+
+<dialog id="dayDlg" class="dlg">
+  <h2 id="dayTitle"></h2>
+  <p class="hint">표시한 날은 시간표의 수업이 비워지고 미입력으로 세지 않습니다.</p>
+  <input type="text" id="dayLabel" placeholder="예: 개교기념일" aria-label="휴일 또는 행사 이름">
+  <div class="chips" id="dayChips"></div>
+  <div class="dlgbtns">
+    <button class="btn" id="dayClear">표시 지우기</button>
+    <button class="btn" id="dayCancel">취소</button>
+    <button class="btn primary" id="daySave">저장</button>
+  </div>
+</dialog>
+
+<input type="file" id="fallbackFile" accept=".json,application/json" hidden>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const DAYS = ['일','월','화','수','목','금','토'];
+const QUICK = ['수행평가','시험','결강','자습','보강'];
+const DAY_QUICK = ['공휴일','재량휴업일','중간고사','기말고사','현장체험학습'];
+const LOCAL_KEY = 'wongok-jindo-v1';
+const FIRST_FROM = '2000-01-01';
+const SUPPORTS_FILE = 'showOpenFilePicker' in window;
+
+/* ---------- 날짜 ---------- */
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const toDate = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays = (s,n) => { const d = toDate(s); d.setDate(d.getDate()+n); return ymd(d); };
+const today = () => ymd(new Date());
+const mondayOf = s => { const w = toDate(s).getDay(); return addDays(s, w===0 ? -6 : 1-w); };
+const shortDate = s => { const d = toDate(s); return `${d.getMonth()+1}/${d.getDate()}(${DAYS[d.getDay()]})`; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- 데이터 ---------- */
+function emptyData(){
+  return {app:'수업 진도표', version:1, updatedAt:0,
+    settings:{periods:7, lunchAfter:4, t:0},
+    timetables:[], timetablesT:0, records:{}, days:{}};
+}
+function validate(o){
+  if(!o || typeof o!=='object' || !o.records || !Array.isArray(o.timetables)) throw new Error('진도표 파일이 아닙니다.');
+  const e = emptyData();
+  return {...e, ...o, settings:{...e.settings, ...o.settings}, days:o.days||{}};
+}
+/* 학교·집 PC에서 고친 내용을 칸 단위로 합침. 칸마다 더 늦게 고친 쪽이 남는다 */
+function merge(a,b){
+  const pickNewer = (x,y) => { const out = {...x}; for(const k in y) if(!out[k] || (y[k].t||0) > (out[k].t||0)) out[k] = y[k]; return out; };
+  const tt = (b.timetablesT||0) > (a.timetablesT||0) ? b : a;
+  return {...a,
+    updatedAt:Math.max(a.updatedAt||0, b.updatedAt||0),
+    settings:(b.settings.t||0) > (a.settings.t||0) ? b.settings : a.settings,
+    timetables:tt.timetables, timetablesT:tt.timetablesT,
+    records:pickNewer(a.records,b.records),
+    days:pickNewer(a.days,b.days)};
+}
+let data = emptyData();
+
+const recKey = (date,p) => `${date}|${p}`;
+function ttFor(date){
+  const list = [...data.timetables].sort((a,b) => a.from < b.from ? -1 : 1);
+  let cur = list[0];
+  for(const t of list) if(t.from <= date) cur = t;
+  return cur;
+}
+function slotClass(date,p){
+  const t = ttFor(date);
+  return t ? (t.slots[`${toDate(date).getDay()}-${p}`] || '') : '';
+}
+const dayLabel = date => (data.days[date] && data.days[date].label) || '';
+function baseClass(date,p){ return dayLabel(date) ? '' : slotClass(date,p); }
+function cellClass(date,p){
+  const r = data.records[recKey(date,p)];
+  return r && r.cls !== undefined ? r.cls : baseClass(date,p);
+}
+function baseSubject(date,p){
+  const t = ttFor(date);
+  if(!t || dayLabel(date) || !t.subjects) return '';
+  return t.subjects[`${toDate(date).getDay()}-${p}`] || '';
+}
+function cellSubject(date,p){
+  const r = data.records[recKey(date,p)];
+  return r && r.subj !== undefined ? r.subj : baseSubject(date,p);
+}
+const cellText = (date,p) => (data.records[recKey(date,p)] || {}).text || '';
+function setCell(date,p,patch){
+  const key = recKey(date,p), prev = data.records[key] || {text:''};
+  const text = patch.text !== undefined ? patch.text : prev.text;
+  const cls = patch.cls !== undefined ? patch.cls.trim() : prev.cls;
+  const subj = patch.subj !== undefined ? patch.subj.trim() : prev.subj;
+  const next = {text, t:Date.now()};
+  if(cls !== undefined && cls !== null && cls !== baseClass(date,p)) next.cls = cls;
+  if(subj !== undefined && subj !== null && subj !== baseSubject(date,p)) next.subj = subj;
+  data.records[key] = next;
+  touch();
+}
+const isClassName = s => /\d|반/.test(s || '');
+/* 학급과 과목을 묶어 하나의 수업으로 본다. 과목이 다르면 진도도 따로다 */
+const courseKey = (cls,subj) => `${subj||''}|${cls}`;
+const splitCourse = key => { const i = key.indexOf('|'); return {subj:key.slice(0,i), cls:key.slice(i+1)}; };
+const courseLabel = (cls,subj) => subj ? `${cls} ${subj}` : cls;
+const koCompare = (a,b) => a.localeCompare(b,'ko',{numeric:true});
+function allSubjects(){
+  const set = new Set();
+  for(const t of data.timetables) for(const k in t.subjects||{}) if(t.subjects[k]) set.add(t.subjects[k]);
+  for(const k in data.records) if(data.records[k].subj) set.add(data.records[k].subj);
+  return [...set].sort(koCompare);
+}
+/* 그 학급을 한 과목만 가르치면 과목을 다시 묻지 않고 채운다 */
+function onlySubjectOf(cls,slots,subjects){
+  const set = new Set();
+  for(const k in slots) if(slots[k]===cls && subjects && subjects[k]) set.add(subjects[k]);
+  return set.size===1 ? [...set][0] : '';
+}
+function onlySubjectInTimetables(cls){
+  const set = new Set();
+  for(const t of data.timetables){
+    const s = onlySubjectOf(cls,t.slots,t.subjects);
+    if(s) set.add(s);
+  }
+  return set.size===1 ? [...set][0] : '';
+}
+/* 22-08~, 23~, 3단원 2차시 같은 진도 표기를 비교용 숫자로 */
+function parseProgress(t){
+  let m = /^\s*(\d+)\s*[-./]\s*(\d+)\s*~?/.exec(t || '');
+  if(m) return [+m[1], +m[2]];
+  m = /^\s*(\d+)\s*(?:단원|강|과|장|쪽|p\.?)?\s*(?:(\d+)\s*(?:차시|쪽|번|p\.?)?)?\s*~?\s*$/i.exec(t || '');
+  return m ? [+m[1], +(m[2] || 0)] : null;
+}
+const cmpProgress = (a,b) => a[0]-b[0] || a[1]-b[1];
+function allClasses(){
+  const set = new Set();
+  for(const t of data.timetables) for(const k in t.slots) if(isClassName(t.slots[k])) set.add(t.slots[k]);
+  for(const k in data.records) if(isClassName(data.records[k].cls)) set.add(data.records[k].cls);
+  return [...set].sort(koCompare);
+}
+/* 입력된 첫 날부터 오늘까지 수업별 칸을 시간순으로 훑는다 */
+function classHistory(){
+  const out = {};
+  for(const t of data.timetables) for(const k in t.slots)
+    if(isClassName(t.slots[k])) out[courseKey(t.slots[k], (t.subjects||{})[k])] = [];
+  const dates = Object.keys(data.records).filter(k => data.records[k].text).map(k => k.split('|')[0]).sort();
+  if(!dates.length) return out;
+  const now = today(), {periods} = data.settings;
+  for(let d = dates[0]; d <= now; d = addDays(d,1)){
+    const w = toDate(d).getDay();
+    if(w===0 || w===6) continue;
+    for(let p = 1; p <= periods; p++){
+      const c = cellClass(d,p), text = cellText(d,p);
+      if(!isClassName(c)) continue;
+      const key = courseKey(c, cellSubject(d,p));
+      if(!out[key]) out[key] = [];
+      if(text.trim() || d < now) out[key].push({date:d, period:p, text:text.trim()});
+    }
+  }
+  return out;
+}
+function previousOf(date,p,cls,subj){
+  if(!isClassName(cls)) return {};
+  const me = recKey(date,p);
+  const keys = Object.keys(data.records).filter(k => k < me && data.records[k].text && data.records[k].text.trim()).sort().reverse();
+  let last = null, prog = null;
+  for(const k of keys){
+    const [d,q] = k.split('|');
+    if(cellClass(d,+q) !== cls || cellSubject(d,+q) !== subj) continue;
+    const item = {date:d, period:+q, text:data.records[k].text.trim()};
+    if(!last) last = item;
+    if(parseProgress(item.text)){ prog = item; break; }
+  }
+  return {last, prog};
+}
+
+/* ---------- 저장 ---------- */
+let handle = null, savedHandle = null, knownMod = 0;
+let saveTimer = null, writing = false, again = false;
+
+function readLocal(){ try{ return JSON.parse(localStorage.getItem(LOCAL_KEY)); }catch(e){ return null; } }
+function saveLocal(dirty){
+  try{ localStorage.setItem(LOCAL_KEY, JSON.stringify({dirty, data})); }catch(e){}
+}
+function touch(){
+  data.updatedAt = Date.now();
+  saveLocal(true);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveTimer = null; flush(); }, 600);
+  if(!handle) setStatus('local');
+}
+function idb(){
+  return new Promise((res,rej) => {
+    const r = indexedDB.open('wongok-jindo',1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function idbGet(k){
+  try{
+    const db = await idb();
+    return await new Promise((res,rej) => {
+      const q = db.transaction('kv').objectStore('kv').get(k);
+      q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error);
+    });
+  }catch(e){ return null; }
+}
+async function idbSet(k,v){
+  try{
+    const db = await idb();
+    db.transaction('kv','readwrite').objectStore('kv').put(v,k);
+  }catch(e){}
+}
+function setStatus(kind,msg){
+  const el = $('filestate');
+  const name = handle ? esc(handle.name) : '';
+  const time = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  el.className = 'filestate';
+  if(kind==='saved'){ el.classList.add('ok'); el.innerHTML = `<i class="dot"></i>${name} · ${time()} 저장됨`; }
+  else if(kind==='saving'){ el.innerHTML = `<i class="dot"></i>저장 중…`; }
+  else if(kind==='local'){ el.classList.add('bad'); el.innerHTML = `<i class="dot"></i>이 브라우저에만 저장 중 <button class="btn small" id="stLink">파일 연결</button>`; }
+  else if(kind==='perm'){ el.classList.add('bad'); el.innerHTML = `<i class="dot"></i>파일 권한 필요 <button class="btn small" id="stLink">다시 연결</button>`; }
+  else if(kind==='error'){ el.classList.add('bad'); el.innerHTML = `<i class="dot"></i>${esc(msg||'파일 저장 실패')} · 이 PC에 임시 보관, 다시 시도 중`; }
+  const link = $('stLink');
+  if(link) link.onclick = kind==='perm' ? reconnect : showStart;
+  if(tab==='setup') renderFileInfo();
+}
+/* 다른 PC에서 파일이 바뀌었으면 가져와 합친다 */
+async function pullRemote(){
+  const f = await handle.getFile();
+  if(f.lastModified === knownMod) return false;
+  const remote = validate(JSON.parse(await f.text()));
+  data = merge(data, remote);
+  knownMod = f.lastModified;
+  render();
+  return true;
+}
+async function flush(){
+  if(!handle){ setStatus('local'); return; }
+  if(writing){ again = true; return; }
+  writing = true;
+  setStatus('saving');
+  try{
+    if(await handle.queryPermission({mode:'readwrite'}) !== 'granted'){ setStatus('perm'); return; }
+    await pullRemote();
+    const w = await handle.createWritable();
+    await w.write(JSON.stringify(data,null,1));
+    await w.close();
+    knownMod = (await handle.getFile()).lastModified;
+    saveLocal(!!saveTimer || again);
+    setStatus('saved');
+  }catch(e){
+    setStatus('error', e instanceof SyntaxError ? '파일을 읽지 못함(동기화 중일 수 있음)' : '파일 저장 실패');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { saveTimer = null; flush(); }, 5000);
+  }finally{
+    writing = false;
+    if(again){ again = false; flush(); }
+  }
+}
+async function openHandle(h){
+  const f = await h.getFile();
+  const text = await f.text();
+  const remote = text.trim() ? validate(JSON.parse(text)) : emptyData();
+  const local = readLocal();
+  let next = remote, mergedLocal = false;
+  if(local && local.dirty && local.data){
+    const unsaved = Object.keys(local.data.records).filter(k => {
+      const r = local.data.records[k], o = remote.records[k];
+      return r.t > ((o && o.t) || 0) && (r.text || (o && o.text));
+    }).length;
+    if(unsaved){
+      const yes = await ask('저장되지 않은 기록이 있습니다',
+        `이 PC에만 있고 「${h.name}」에는 없는 기록이 ${unsaved}건 있습니다. 파일에 합칠까요?`,
+        [{label:'버리기', value:false},{label:'합치기', value:true, primary:true}]);
+      if(yes){ next = merge(remote, validate(local.data)); mergedLocal = true; }
+    }
+  }
+  data = next;
+  handle = h; savedHandle = h;
+  knownMod = f.lastModified;
+  await idbSet('handle', h);
+  saveLocal(false);
+  if($('startDlg').open) $('startDlg').close();
+  setStatus('saved');
+  draft = null;
+  render();
+  if(tab==='setup') renderSetup();
+  if(mergedLocal) touch();
+  if(!data.timetables.length) showTab('setup');
+}
+const JSON_TYPES = [{description:'진도표 데이터', accept:{'application/json':['.json']}}];
+async function pickOpen(){
+  if(!SUPPORTS_FILE){ $('fallbackFile').click(); return; }
+  try{
+    const [h] = await window.showOpenFilePicker({types:JSON_TYPES});
+    await h.requestPermission({mode:'readwrite'});
+    await openHandle(h);
+  }catch(e){ if(e.name!=='AbortError') await notify('파일을 열지 못했습니다', e.message); }
+}
+async function pickNew(){
+  try{
+    const h = await window.showSaveFilePicker({suggestedName:'진도표 데이터.json', types:JSON_TYPES});
+    const w = await h.createWritable();
+    await w.write(JSON.stringify(emptyData(),null,1));
+    await w.close();
+    await openHandle(h);
+  }catch(e){ if(e.name!=='AbortError') await notify('파일을 만들지 못했습니다', e.message); }
+}
+async function reconnect(){
+  try{
+    const h = handle || savedHandle;
+    if(await h.requestPermission({mode:'readwrite'}) !== 'granted') return;
+    if(handle) flush(); else await openHandle(h);
+  }catch(e){ await notify('파일을 열지 못했습니다', e.message); }
+}
+function showStart(){
+  const box = $('startBtns');
+  box.innerHTML = '';
+  const add = (label,sub,fn,primary) => {
+    const b = document.createElement('button');
+    b.className = 'btn' + (primary ? ' primary' : '');
+    b.innerHTML = `${esc(label)}<small>${esc(sub)}</small>`;
+    b.onclick = fn;
+    box.append(b);
+  };
+  if(SUPPORTS_FILE){
+    if(savedHandle) add(`「${savedHandle.name}」 이어서 열기`,'지난번에 쓰던 파일입니다.',reconnect,true);
+    add('기존 파일 열기','이미 있는 진도표 데이터(.json)를 고릅니다.',pickOpen,!savedHandle);
+    add('새 파일 만들기','빈 진도표를 만듭니다. OneDrive 폴더에 저장하세요.',pickNew);
+  }else{
+    $('startMsg').textContent = '이 브라우저는 파일 자동 저장을 지원하지 않습니다. 진도표는 Edge나 Chrome에서 여는 것을 권합니다.';
+    add('백업 파일 불러오기','내려받아 둔 진도표 데이터(.json)를 읽어 옵니다.',pickOpen);
+  }
+  add('파일 없이 쓰기','이 브라우저에만 저장됩니다. 체험용으로만 권합니다.',() => {
+    $('startDlg').close();
+    setStatus('local');
+    if(!data.timetables.length) showTab('setup');
+  });
+  if(!$('startDlg').open) $('startDlg').showModal();
+}
+function download(name,text,type){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text],{type}));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function exportCsv(){
+  /* 22-08 같은 값을 엑셀이 날짜로 바꾸지 않도록 수식 문자열로 감싼다 */
+  const q = s => /^[\d\-\/. ]+$/.test(s) && s.trim() ? `"=""${s}"""` : `"${String(s).replace(/"/g,'""')}"`;
+  const rows = [['날짜','요일','교시','학급','과목','진도·내용'].join(',')];
+  for(const k of Object.keys(data.records).sort()){
+    const [d,p] = k.split('|'), text = cellText(d,+p).trim();
+    if(!text) continue;
+    rows.push([d, DAYS[toDate(d).getDay()], p, q(cellClass(d,+p)), q(cellSubject(d,+p)), q(text)].join(','));
+  }
+  download(`수업 진도표 ${today()}.csv`, '﻿'+rows.join('\r\n'), 'text/csv;charset=utf-8');
+}
+
+/* ---------- 대화상자 ---------- */
+function ask(title,msg,buttons){
+  return new Promise(res => {
+    const dlg = $('askDlg');
+    $('askTitle').textContent = title;
+    $('askMsg').textContent = msg;
+    const box = $('askBtns');
+    box.innerHTML = '';
+    for(const b of buttons){
+      const el = document.createElement('button');
+      el.className = 'btn' + (b.primary ? ' primary' : '');
+      el.textContent = b.label;
+      el.onclick = () => { dlg.close(); res(b.value); };
+      box.append(el);
+    }
+    dlg.oncancel = e => e.preventDefault();
+    dlg.showModal();
+  });
+}
+const notify = (t,m) => ask(t,m,[{label:'확인',value:true,primary:true}]);
+
+/* ---------- 화면 전환 ---------- */
+let tab = 'week';
+function showTab(name){
+  tab = name;
+  for(const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.tab===name);
+  for(const n of ['week','classes','setup']) $('view-'+n).hidden = n!==name;
+  $('pop').hidden = true;
+  if(name==='setup') renderSetup(); else render();
+}
+function render(){
+  if(tab==='week') renderWeek();
+  else if(tab==='classes') renderClasses();
+  else renderFileInfo();
+}
+
+/* ---------- 주간 진도표 ---------- */
+let week = mondayOf(today());
+function renderWeek(){
+  const active = document.activeElement;
+  const keep = active && active.closest && active.closest('#sheet') && active.dataset.key
+    ? {key:active.dataset.key, field:active.dataset.field, start:active.selectionStart, end:active.selectionEnd} : null;
+  const dates = [0,1,2,3,4].map(n => addDays(week,n));
+  const now = today(), {periods, lunchAfter} = data.settings;
+  const fri = toDate(dates[4]), mon = toDate(week);
+  const range = `${mon.getFullYear()}년 ${mon.getMonth()+1}월 ${mon.getDate()}일 ~ ${fri.getMonth()!==mon.getMonth() ? (fri.getMonth()+1)+'월 ' : ''}${fri.getDate()}일`;
+  $('weekTitle').textContent = range;
+  $('printSub').textContent = range;
+  $('noTT').hidden = data.timetables.length > 0;
+  let html = '<thead><tr><th class="pcol">교시</th>';
+  for(const d of dates){
+    const dt = toDate(d), lbl = dayLabel(d);
+    html += `<th class="${d===now?'today':''}"><button class="dayhead" data-day="${d}" title="휴일·시험 표시"><b>${dt.getMonth()+1}/${dt.getDate()}</b><span>${DAYS[dt.getDay()]}</span>${lbl?`<span class="lbl">${esc(lbl)}</span>`:''}</button></th>`;
+  }
+  html += '</tr></thead><tbody>';
+  for(let p = 1; p <= periods; p++){
+    html += `<tr><th>${p}</th>`;
+    for(const d of dates){
+      const key = recKey(d,p);
+      html += `<td class="cell${d===now?' today':''}${dayLabel(d)?' off':''}" data-date="${d}" data-p="${p}">
+        <div class="cellhead"><input class="cls" data-key="${key}" data-field="cls" list="classlist" aria-label="${shortDate(d)} ${p}교시 학급" autocomplete="off"><input class="subj" data-key="${key}" data-field="subj" list="subjectlist" aria-label="${shortDate(d)} ${p}교시 과목" autocomplete="off"></div>
+        <textarea data-key="${key}" data-field="text" rows="1" aria-label="${shortDate(d)} ${p}교시 진도"></textarea></td>`;
+    }
+    html += '</tr>';
+    if(p===lunchAfter && p<periods) html += '<tr class="lunch"><td colspan="6">점심시간</td></tr>';
+  }
+  $('sheet').innerHTML = html + '</tbody>';
+  $('classlist').innerHTML = allClasses().map(c => `<option value="${esc(c)}">`).join('');
+  $('subjectlist').innerHTML = allSubjects().map(s => `<option value="${esc(s)}">`).join('');
+  for(const td of $('sheet').querySelectorAll('.cell')){
+    const d = td.dataset.date, p = +td.dataset.p;
+    td.querySelector('input.cls').value = cellClass(d,p);
+    td.querySelector('input.subj').value = cellSubject(d,p);
+    td.querySelector('textarea').value = cellText(d,p);
+    refreshCell(td);
+  }
+  if(keep){
+    const el = $('sheet').querySelector(`[data-key="${keep.key}"][data-field="${keep.field}"]`);
+    if(el){ el.focus(); try{ el.setSelectionRange(keep.start,keep.end); }catch(e){} }
+  }
+}
+function refreshCell(td){
+  const d = td.dataset.date, p = +td.dataset.p;
+  const ta = td.querySelector('textarea');
+  if(!CSS.supports('field-sizing','content') && ta.offsetWidth){
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+  }
+  const r = data.records[recKey(d,p)];
+  td.classList.toggle('changed', !!(r && (r.cls !== undefined || r.subj !== undefined)));
+  td.classList.toggle('missing', isClassName(cellClass(d,p)) && !cellText(d,p).trim() && d < today());
+}
+function showPop(td){
+  const d = td.dataset.date, p = +td.dataset.p, cls = cellClass(d,p), subj = cellSubject(d,p), pop = $('pop');
+  const {last, prog} = previousOf(d,p,cls,subj);
+  const label = esc(courseLabel(cls,subj));
+  const line = (label,it) => `<div>${label} ${shortDate(it.date)} ${it.period}교시: <b>${esc(it.text)}</b></div>`;
+  let html = '';
+  if(isClassName(cls)){
+    html += '<div class="prev">';
+    html += last ? line(`${label} 직전 수업`, last) : `${label}의 이전 기록이 없습니다.`;
+    if(prog && prog !== last && prog.text !== last.text) html += line('최근 진도', prog);
+    html += '</div>';
+  }
+  html += '<div class="chips">' + QUICK.map(q => `<button class="chip" data-chip="${q}" tabindex="-1">${q}</button>`).join('') + '</div>';
+  const r = data.records[recKey(d,p)];
+  if(r && (r.cls !== undefined || r.subj !== undefined)) html += `<div class="row">시간표와 다른 칸입니다 (시간표: ${esc(courseLabel(baseClass(d,p),baseSubject(d,p))||'없음')}) <button class="linkbtn" data-revert tabindex="-1">되돌리기</button></div>`;
+  pop.innerHTML = html;
+  pop.hidden = false;
+  const box = td.getBoundingClientRect(), h = pop.offsetHeight;
+  pop.style.left = Math.max(8, Math.min(box.left, innerWidth - 308)) + 'px';
+  pop.style.top = (box.bottom + h + 8 < innerHeight ? box.bottom + 4 : Math.max(8, box.top - h - 4)) + 'px';
+  pop.dataset.date = d; pop.dataset.p = p;
+}
+function focusNext(td){
+  const cells = [...$('sheet').querySelectorAll('.cell')].sort((a,b) =>
+    a.dataset.date < b.dataset.date ? -1 : a.dataset.date > b.dataset.date ? 1 : a.dataset.p - b.dataset.p);
+  const i = cells.indexOf(td);
+  const next = cells.slice(i+1).find(c => c.querySelector('input').value.trim());
+  if(next) next.querySelector('textarea').focus(); else document.activeElement.blur();
+}
+$('sheet').addEventListener('input', e => {
+  const td = e.target.closest('.cell');
+  if(!td) return;
+  const d = td.dataset.date, p = +td.dataset.p;
+  setCell(d,p,{[e.target.dataset.field]:e.target.value});
+  refreshCell(td);
+  showPop(td);
+});
+$('sheet').addEventListener('change', e => {
+  const td = e.target.closest('.cell');
+  if(!td || e.target.dataset.field!=='cls') return;
+  const subjEl = td.querySelector('input.subj');
+  const s = subjEl.value.trim() ? '' : onlySubjectInTimetables(e.target.value.trim());
+  if(s){
+    subjEl.value = s;
+    setCell(td.dataset.date, +td.dataset.p, {subj:s});
+    refreshCell(td);
+    if(td.contains(document.activeElement)) showPop(td);
+  }
+});
+$('sheet').addEventListener('focusin', e => { const td = e.target.closest('.cell'); if(td) showPop(td); });
+$('sheet').addEventListener('focusout', () => setTimeout(() => {
+  if(!$('sheet').contains(document.activeElement)) $('pop').hidden = true;
+}, 0));
+$('sheet').addEventListener('keydown', e => {
+  const td = e.target.closest('.cell');
+  if(!td) return;
+  if(e.key==='Enter' && !e.shiftKey && !e.isComposing){
+    e.preventDefault();
+    if(e.target.dataset.field==='cls') td.querySelector('textarea').focus(); else focusNext(td);
+  }else if(e.key==='Escape') e.target.blur();
+});
+$('sheet').addEventListener('click', e => {
+  const b = e.target.closest('[data-day]');
+  if(b) openDay(b.dataset.day);
+});
+$('pop').addEventListener('mousedown', e => e.preventDefault());
+$('pop').addEventListener('click', e => {
+  const pop = $('pop'), d = pop.dataset.date, p = +pop.dataset.p;
+  const td = $('sheet').querySelector(`.cell[data-date="${d}"][data-p="${p}"]`);
+  if(e.target.dataset.chip){
+    td.querySelector('textarea').value = e.target.dataset.chip;
+    setCell(d,p,{text:e.target.dataset.chip});
+    refreshCell(td); showPop(td);
+  }else if(e.target.dataset.revert !== undefined){
+    const r = data.records[recKey(d,p)];
+    delete r.cls; delete r.subj; r.t = Date.now();
+    touch();
+    td.querySelector('input.cls').value = baseClass(d,p);
+    td.querySelector('input.subj').value = baseSubject(d,p);
+    refreshCell(td); showPop(td);
+  }
+});
+$('prevWeek').onclick = () => { week = addDays(week,-7); renderWeek(); };
+$('nextWeek').onclick = () => { week = addDays(week,7); renderWeek(); };
+$('thisWeek').onclick = () => { week = mondayOf(today()); renderWeek(); };
+$('printBtn').onclick = () => { $('pop').hidden = true; for(const t of $('sheet').querySelectorAll('.cell')) refreshCell(t); print(); };
+$('goSetup').onclick = () => showTab('setup');
+
+/* 휴일·시험 표시 */
+let dayEditing = null;
+function openDay(d){
+  dayEditing = d;
+  $('dayTitle').textContent = `${shortDate(d)} 휴일·시험 표시`;
+  $('dayLabel').value = dayLabel(d);
+  $('dayChips').innerHTML = DAY_QUICK.map(q => `<button class="chip" data-q="${q}">${q}</button>`).join('');
+  $('dayDlg').showModal();
+}
+function saveDay(label){
+  data.days[dayEditing] = {label:label.trim(), t:Date.now()};
+  touch();
+  $('dayDlg').close();
+  renderWeek();
+}
+$('dayChips').onclick = e => { if(e.target.dataset.q) $('dayLabel').value = e.target.dataset.q; };
+$('daySave').onclick = () => saveDay($('dayLabel').value);
+$('dayClear').onclick = () => saveDay('');
+$('dayCancel').onclick = () => $('dayDlg').close();
+$('dayLabel').addEventListener('keydown', e => { if(e.key==='Enter' && !e.isComposing){ e.preventDefault(); saveDay($('dayLabel').value); } });
+
+/* ---------- 학급별 진도 ---------- */
+let selClass = null;
+function renderClasses(){
+  const hist = classHistory();
+  const rows = Object.keys(hist).map(id => {
+    const list = hist[id];
+    let prog = null;
+    for(const it of list) if(parseProgress(it.text)) prog = it;
+    return {id, ...splitCourse(id), prog, key:prog && parseProgress(prog.text),
+      done:list.filter(i => i.text).length, missing:list.filter(i => !i.text).length};
+  }).sort((a,b) => {
+    if(a.subj !== b.subj) return koCompare(a.subj,b.subj);
+    if(a.key && b.key) return cmpProgress(b.key,a.key) || koCompare(a.cls,b.cls);
+    return a.key ? -1 : b.key ? 1 : koCompare(a.cls,b.cls);
+  });
+  const hasSubj = rows.some(r => r.subj);
+  if(!rows.length){
+    $('classTable').innerHTML = '<p class="hint">시간표를 등록하면 학급이 나타납니다.</p>';
+    $('histTable').innerHTML = '';
+    $('histTitle').textContent = '수업 기록';
+    return;
+  }
+  if(!rows.some(r => r.id===selClass)) selClass = rows[0].id;
+  $('classTable').innerHTML = `<table class="tbl"><thead><tr>${hasSubj?'<th>과목</th>':''}<th>학급</th><th>최근 진도</th><th>날짜</th><th class="num">기록</th><th class="num">미입력</th></tr></thead><tbody>` +
+    rows.map(r => `<tr class="pick${r.id===selClass?' sel':''}" data-class="${esc(r.id)}" tabindex="0">
+      ${hasSubj?`<td>${esc(r.subj)}</td>`:''}<td class="big">${esc(r.cls)}</td><td>${r.prog?esc(r.prog.text):'—'}</td><td>${r.prog?shortDate(r.prog.date):''}</td>
+      <td class="num">${r.done}</td><td class="num ${r.missing?'warn':''}">${r.missing||''}</td></tr>`).join('') + '</tbody></table>';
+  const sel = splitCourse(selClass);
+  $('histTitle').textContent = `${courseLabel(sel.cls,sel.subj)} 수업 기록`;
+  const list = [...hist[selClass]].reverse();
+  $('histTable').innerHTML = list.length ? `<table class="tbl"><thead><tr><th>날짜</th><th>교시</th><th>진도·내용</th></tr></thead><tbody>` +
+    list.map(i => `<tr><td><button class="linkbtn" data-jump="${i.date}" data-p="${i.period}">${shortDate(i.date)}</button></td><td>${i.period}</td><td${i.text?'':' class="warn"'}>${i.text?esc(i.text):'미입력'}</td></tr>`).join('') + '</tbody></table>'
+    : '<p class="hint">아직 기록이 없습니다.</p>';
+}
+function pickClass(tr){ selClass = tr.dataset.class; renderClasses(); }
+$('classTable').addEventListener('click', e => { const tr = e.target.closest('[data-class]'); if(tr) pickClass(tr); });
+$('classTable').addEventListener('keydown', e => { const tr = e.target.closest('[data-class]'); if(tr && e.key==='Enter') pickClass(tr); });
+$('histTable').addEventListener('click', e => {
+  const b = e.target.closest('[data-jump]');
+  if(!b) return;
+  week = mondayOf(b.dataset.jump);
+  showTab('week');
+  const td = $('sheet').querySelector(`.cell[data-date="${b.dataset.jump}"][data-p="${b.dataset.p}"]`);
+  if(td) td.querySelector('textarea').focus();
+});
+
+/* ---------- 시간표 · 저장 ---------- */
+let draft = null;
+function newDraft(){
+  const cur = ttFor(today());
+  return {periods:data.settings.periods, lunchAfter:data.settings.lunchAfter,
+    from:cur ? mondayOf(today()) : FIRST_FROM, slots:cur ? {...cur.slots} : {}, subjects:cur ? {...cur.subjects} : {}};
+}
+function renderSetup(){
+  if(!draft) draft = newDraft();
+  const first = !data.timetables.length || draft.from===FIRST_FROM;
+  $('ttPeriods').value = draft.periods;
+  $('ttFromWrap').hidden = first;
+  $('ttFromHint').hidden = first;
+  $('ttFrom').value = first ? '' : draft.from;
+  let lunch = '';
+  for(let i = 1; i < draft.periods; i++) lunch += `<option value="${i}">${i}교시 뒤</option>`;
+  $('ttLunch').innerHTML = lunch;
+  $('ttLunch').value = Math.min(draft.lunchAfter, draft.periods-1);
+  let html = '<thead><tr><th class="pcol">교시</th>' + [1,2,3,4,5].map(w => `<th>${DAYS[w]}</th>`).join('') + '</tr></thead><tbody>';
+  for(let p = 1; p <= draft.periods; p++){
+    html += `<tr><th>${p}</th>`;
+    for(let w = 1; w <= 5; w++) html += `<td><input data-slot="${w}-${p}" aria-label="${DAYS[w]}요일 ${p}교시 학급"><input class="subj" data-subj="${w}-${p}" list="subjectlist" placeholder="과목(선택)" aria-label="${DAYS[w]}요일 ${p}교시 과목"></td>`;
+    html += '</tr>';
+    if(p===draft.lunchAfter && p<draft.periods) html += '<tr class="lunch"><td colspan="6">점심시간</td></tr>';
+  }
+  $('ttGrid').innerHTML = html + '</tbody>';
+  for(const el of $('ttGrid').querySelectorAll('input[data-slot]')){
+    el.value = draft.slots[el.dataset.slot] || '';
+    el.parentElement.classList.toggle('hasc', !!el.value);
+  }
+  for(const el of $('ttGrid').querySelectorAll('input[data-subj]')) el.value = draft.subjects[el.dataset.subj] || '';
+  $('subjectlist').innerHTML = allSubjects().map(s => `<option value="${esc(s)}">`).join('');
+  renderVersions();
+  renderFileInfo();
+}
+function renderVersions(){
+  const list = [...data.timetables].sort((a,b) => a.from < b.from ? -1 : 1);
+  $('ttVersions').innerHTML = list.length < 2 ? '' : '<li class="hint">저장된 시간표</li>' + list.map(t =>
+    `<li><span>${t.from===FIRST_FROM?'처음부터':t.from+'부터'}</span>
+     <button class="btn small" data-load="${t.from}">불러오기</button>
+     <button class="btn small danger" data-del="${t.from}">삭제</button></li>`).join('');
+}
+function renderFileInfo(){
+  $('fileInfo').textContent = handle
+    ? `지금 「${handle.name}」에 자동 저장하고 있습니다. 칸을 고칠 때마다 저장되므로 저장 버튼은 없습니다.`
+    : '연결된 파일이 없어 이 브라우저에만 저장하고 있습니다. 브라우저 데이터를 지우면 기록이 사라집니다.';
+  $('newFile').hidden = !SUPPORTS_FILE;
+}
+$('ttGrid').addEventListener('input', e => {
+  const {slot, subj} = e.target.dataset;
+  if(slot){
+    draft.slots[slot] = e.target.value.trim();
+    e.target.parentElement.classList.toggle('hasc', !!e.target.value.trim());
+  }
+  if(subj) draft.subjects[subj] = e.target.value.trim();
+});
+$('ttGrid').addEventListener('change', e => {
+  const {slot} = e.target.dataset;
+  if(!slot) return;
+  const subjEl = e.target.parentElement.querySelector('input.subj');
+  const s = subjEl.value.trim() ? '' : onlySubjectOf(e.target.value.trim(), draft.slots, draft.subjects);
+  if(s){ subjEl.value = s; draft.subjects[slot] = s; }
+});
+$('ttPeriods').onchange = e => { draft.periods = +e.target.value; renderSetup(); };
+$('ttLunch').onchange = e => { draft.lunchAfter = +e.target.value; renderSetup(); };
+$('ttFrom').onchange = e => { if(e.target.value) draft.from = e.target.value; };
+$('ttSave').onclick = async () => {
+  const slots = {};
+  const subjects = {};
+  for(const k in draft.slots) if(draft.slots[k]){
+    slots[k] = draft.slots[k];
+    if(draft.subjects[k]) subjects[k] = draft.subjects[k];
+  }
+  data.timetables = data.timetables.filter(t => t.from !== draft.from).concat({from:draft.from, slots, subjects});
+  data.timetablesT = Date.now();
+  data.settings = {periods:draft.periods, lunchAfter:draft.lunchAfter, t:Date.now()};
+  touch();
+  draft = null;
+  showTab('week');
+};
+$('ttVersions').addEventListener('click', async e => {
+  const load = e.target.dataset.load, del = e.target.dataset.del;
+  if(load){
+    const t = data.timetables.find(x => x.from===load);
+    draft = {...draft, from:t.from, slots:{...t.slots}, subjects:{...t.subjects}};
+    renderSetup();
+  }else if(del){
+    const yes = await ask('시간표 삭제', `${del===FIRST_FROM?'처음부터 적용되는':del+'부터 적용되는'} 시간표를 지울까요? 진도 기록은 지워지지 않지만, 그 기간의 수업 칸이 달라질 수 있습니다.`,
+      [{label:'취소',value:false},{label:'삭제',value:true,primary:true}]);
+    if(!yes) return;
+    data.timetables = data.timetables.filter(t => t.from !== del);
+    data.timetablesT = Date.now();
+    touch();
+    draft = null;
+    renderSetup();
+  }
+});
+$('openOther').onclick = pickOpen;
+$('newFile').onclick = pickNew;
+$('backup').onclick = () => download(`진도표 백업 ${today()}.json`, JSON.stringify(data,null,1), 'application/json');
+$('csv').onclick = exportCsv;
+$('fallbackFile').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if(!f) return;
+  try{
+    data = validate(JSON.parse(await f.text()));
+    touch();
+    draft = null;
+    if($('startDlg').open) $('startDlg').close();
+    showTab('week');
+  }catch(err){ await notify('파일을 열지 못했습니다', err.message); }
+};
+
+/* ---------- 시작 ---------- */
+for(const b of document.querySelectorAll('.tab')) b.onclick = () => showTab(b.dataset.tab);
+window.addEventListener('focus', async () => {
+  if(!handle || writing) return;
+  try{
+    if(await handle.queryPermission({mode:'readwrite'}) !== 'granted') return;
+    if(await pullRemote()) saveLocal(!!saveTimer);
+  }catch(e){}
+});
+window.addEventListener('beforeunload', e => { if(handle && (saveTimer || writing)) e.preventDefault(); });
+window.addEventListener('resize', () => { $('pop').hidden = true; });
+window.addEventListener('scroll', () => { $('pop').hidden = true; }, true);
+
+if('serviceWorker' in navigator && location.protocol !== 'file:'){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+(async function boot(){
+  const local = readLocal();
+  if(local && local.data){ try{ data = validate(local.data); }catch(e){} }
+  showTab('week');
+  setStatus('local');
+  if(SUPPORTS_FILE){
+    savedHandle = await idbGet('handle');
+    if(savedHandle){
+      try{
+        if(await savedHandle.queryPermission({mode:'readwrite'}) === 'granted'){ await openHandle(savedHandle); return; }
+      }catch(e){}
+    }
+  }
+  showStart();
+})();
+</script>
+</body>
+</html>
